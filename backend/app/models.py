@@ -9,6 +9,7 @@ Base = declarative_base()
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     WAITER = "waiter"
+    KITCHEN = "kitchen"
 
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
@@ -50,6 +51,7 @@ class Order(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     items = relationship("OrderItem", back_populates="order")
+    bill_id = Column(Integer, ForeignKey("bills.id"), nullable=True)
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -59,3 +61,15 @@ class OrderItem(Base):
     quantity = Column(Integer)
     order = relationship("Order", back_populates="items")
     menu_item = relationship("MenuItem")
+
+class PaymentMethod(str, enum.Enum):
+    CASH = "cash"
+    CARD = "card"
+
+class Bill(Base):
+    __tablename__ = "bills"
+    id = Column(Integer, primary_key=True, index=True)
+    total = Column(Float)
+    is_paid = Column(Integer, default=0)
+    payment_method = Column(Enum(PaymentMethod), nullable=True)
+    orders = relationship("Order")
