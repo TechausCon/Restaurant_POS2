@@ -1,48 +1,63 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiUrl = 'http://localhost:8000';
+    checkAuth();
+    document.getElementById('logout-button').addEventListener('click', logout);
+
     const ordersContainer = document.getElementById('orders-container');
+    const ws = new WebSocket(`ws://localhost:8000/ws`);
+    let orders = [];
 
-    function fetchOrders() {
-        fetch(`${apiUrl}/orders/`)
-            .then(response => response.json())
-            .then(orders => {
-                ordersContainer.innerHTML = '';
-                orders.forEach(order => {
-                    const orderCard = document.createElement('div');
-                    orderCard.classList.add('order-card');
+    ws.onmessage = function(event) {
+        const orderData = JSON.parse(event.data);
+        const index = orders.findIndex(o => o.id === orderData.id);
+        if (index > -1) {
+            orders[index] = orderData;
+        } else {
+            orders.push(orderData);
+        }
+        renderOrders();
+    };
 
-                    const title = document.createElement('h2');
-                    title.textContent = `Table ${order.table_id} - ${order.status}`;
-                    orderCard.appendChild(title);
+    function renderOrders() {
+        ordersContainer.innerHTML = '';
+        orders.forEach(order => {
+            const orderCard = document.createElement('div');
+            orderCard.classList.add('order-card');
 
-                    const itemList = document.createElement('ul');
-                    order.items.forEach(item => {
-                        const li = document.createElement('li');
-                        li.textContent = `${item.menu_item.name} x${item.quantity}`;
-                        itemList.appendChild(li);
-                    });
-                    orderCard.appendChild(itemList);
+            const title = document.createElement('h2');
+            title.textContent = `Table ${order.table_id} - ${order.status}`;
+            orderCard.appendChild(title);
 
-                    const statusSelect = document.createElement('select');
-                    statusSelect.innerHTML = `
-                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="in_progress" ${order.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
-                    `;
-                    statusSelect.addEventListener('change', () => {
-                        fetch(`${apiUrl}/orders/${order.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: statusSelect.value })
-                        }).then(() => fetchOrders());
-                    });
-                    orderCard.appendChild(statusSelect);
+            const itemList = document.createElement('ul');
+            order.items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.menu_item.name} x${item.quantity}`;
+                itemList.appendChild(li);
+            });
+            orderCard.appendChild(itemList);
 
-                    ordersContainer.appendChild(orderCard);
+            const statusSelect = document.createElement('select');
+            statusSelect.innerHTML = `
+                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="in_progress" ${order.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+            `;
+            statusSelect.addEventListener('change', () => {
+                fetchWithAuth(`/orders/${order.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusSelect.value })
                 });
             });
+            orderCard.appendChild(statusSelect);
+
+            ordersContainer.appendChild(orderCard);
+        });
     }
 
-    fetchOrders();
-    setInterval(fetchOrders, 5000); // Refresh every 5 seconds
+    fetchWithAuth('/orders/')
+        .then(response => response.json())
+        .then(initialOrders => {
+            orders = initialOrders;
+            renderOrders();
+        });
 });

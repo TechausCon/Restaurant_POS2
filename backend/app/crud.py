@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from pwdlib import PasswordHash
-
-pwd_context = PasswordHash.recommended()
+from .security import get_password_hash
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -14,7 +12,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def create_user(db: Session, user: schemas.UserCreate):
-    hashed_password = pwd_context.hash(user.password)
+    hashed_password = get_password_hash(user.password)
     db_user = models.User(username=user.username, hashed_password=hashed_password, role=user.role)
     db.add(db_user)
     db.commit()
@@ -72,3 +70,30 @@ def update_order_status(db: Session, order_id: int, status: schemas.OrderStatus)
     db.commit()
     db.refresh(db_order)
     return db_order
+
+def get_bill(db: Session, bill_id: int):
+    return db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+
+def get_bills(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Bill).offset(skip).limit(limit).all()
+
+def get_bills_by_table(db: Session, table_id: int):
+    return db.query(models.Bill).join(models.Order).filter(models.Order.table_id == table_id).all()
+
+def create_bill(db: Session, bill: schemas.BillCreate):
+    db_bill = models.Bill(total=bill.total)
+    db.add(db_bill)
+    db.commit()
+    db.refresh(db_bill)
+    for order_id in bill.order_ids:
+        db.query(models.Order).filter(models.Order.id == order_id).update({"bill_id": db_bill.id})
+    db.commit()
+    return db_bill
+
+def update_bill_status(db: Session, bill_id: int, is_paid: int, payment_method: schemas.PaymentMethod):
+    db_bill = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    db_bill.is_paid = is_paid
+    db_bill.payment_method = payment_method
+    db.commit()
+    db.refresh(db_bill)
+    return db_bill

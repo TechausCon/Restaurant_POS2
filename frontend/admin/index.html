@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
+    <link rel="stylesheet" href="../shared/style.css">
     <link rel="stylesheet" href="style.css">
 </head><body>
+    <button id="logout-button">Logout</button>
     <h1>Admin Panel</h1>
     <div class="container">
         <!-- User Management -->
@@ -17,6 +19,7 @@
                 <select id="user-role">
                     <option value="admin">Admin</option>
                     <option value="waiter">Waiter</option>
+                    <option value="kitchen">Kitchen</option>
                 </select>
                 <button type="submit">Add User</button>
             </form>
@@ -56,7 +59,12 @@
             </form>
             <ul id="menu-item-list"></ul>
         </div>
+        <div class="section">
+            <h2>Analytics</h2>
+            <div id="sales-report"></div>
+        </div>
     </div>
+    <script src="../shared/auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

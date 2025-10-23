@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiUrl = 'http://localhost:8000';
+    checkAuth();
+    document.getElementById('logout-button').addEventListener('click', logout);
+
     let selectedTable = null;
     let currentOrder = [];
 
@@ -11,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const placeOrderButton = document.getElementById('place-order');
 
     // Fetch tables
-    fetch(`${apiUrl}/tables/`)
+    fetchWithAuth('/tables/')
         .then(response => response.json())
         .then(tables => {
             tables.forEach(table => {
@@ -29,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // Fetch categories and menu items
-    fetch(`${apiUrl}/categories/`)
+    fetchWithAuth('/categories/')
         .then(response => response.json())
         .then(categories => {
             categories.forEach(category => {
@@ -68,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     placeOrderButton.addEventListener('click', () => {
         if (selectedTable && currentOrder.length > 0) {
-            fetch(`${apiUrl}/orders/`, {
+            fetchWithAuth('/orders/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ table_id: selectedTable, items: currentOrder })
@@ -81,4 +83,77 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please select a table and add items to the order.');
         }
     });
+
+    const generateBillButton = document.getElementById('generate-bill');
+    generateBillButton.addEventListener('click', () => {
+        if (selectedTable) {
+            fetchWithAuth(`/orders/table/${selectedTable}`)
+                .then(response => response.json())
+                .then(orders => {
+                    const unbilledOrders = orders.filter(order => !order.bill_id);
+                    if (unbilledOrders.length === 0) {
+                        alert("No unbilled orders for this table.");
+                        return;
+                    }
+                    const total = unbilledOrders.reduce((acc, order) => {
+                        return acc + order.items.reduce((acc, item) => {
+                            return acc + (item.menu_item.price * item.quantity);
+                        }, 0);
+                    }, 0);
+                    const order_ids = unbilledOrders.map(order => order.id);
+
+                    fetchWithAuth('/bills/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ total: total, order_ids: order_ids })
+                    }).then(() => {
+                        alert('Bill generated!');
+                        renderBills();
+                    });
+                });
+        } else {
+            alert('Please select a table.');
+        }
+    });
+
+    function renderBills() {
+        if (selectedTable) {
+            fetchWithAuth(`/bills/table/${selectedTable}`)
+                .then(response => response.json())
+                .then(bills => {
+                    const tableBillsDiv = document.getElementById('table-bills');
+                    tableBillsDiv.innerHTML = '';
+                    bills.forEach(bill => {
+                        const div = document.createElement('div');
+                        div.textContent = `Bill #${bill.id}: ${bill.total}€ - ${bill.is_paid ? `Paid (${bill.payment_method})` : 'Unpaid'}`;
+
+                        if (!bill.is_paid) {
+                            const payCashButton = document.createElement('button');
+                            payCashButton.textContent = 'Pay with Cash';
+                            payCashButton.addEventListener('click', () => {
+                                fetchWithAuth(`/bills/${bill.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ is_paid: 1, payment_method: 'cash' })
+                                }).then(() => renderBills());
+                            });
+                            div.appendChild(payCashButton);
+
+                            const payCardButton = document.createElement('button');
+                            payCardButton.textContent = 'Pay with Card';
+                            payCardButton.addEventListener('click', () => {
+                                fetchWithAuth(`/bills/${bill.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ is_paid: 1, payment_method: 'card' })
+                                }).then(() => renderBills());
+                            });
+                            div.appendChild(payCardButton);
+                        }
+
+                        tableBillsDiv.appendChild(div);
+                    });
+                });
+        }
+    }
 });

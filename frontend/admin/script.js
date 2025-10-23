@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiUrl = 'http://localhost:8000';
+    checkAuth();
+    document.getElementById('logout-button').addEventListener('click', logout);
 
     // Fetch and display users
     const userList = document.getElementById('user-list');
-    fetch(`${apiUrl}/users/`)
+    fetchWithAuth('/users/')
         .then(response => response.json())
         .then(users => {
             users.forEach(user => {
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display tables
     const tableList = document.getElementById('table-list');
-    fetch(`${apiUrl}/tables/`)
+    fetchWithAuth('/tables/')
         .then(response => response.json())
         .then(tables => {
             tables.forEach(table => {
@@ -28,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and display categories
     const categoryList = document.getElementById('category-list');
     const itemCategory = document.getElementById('item-category');
-    fetch(`${apiUrl}/categories/`)
+    fetchWithAuth('/categories/')
         .then(response => response.json())
         .then(categories => {
             categories.forEach(category => {
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display menu items
     const menuItemList = document.getElementById('menu-item-list');
-    fetch(`${apiUrl}/menu-items/`)
+    fetchWithAuth('/menu-items/')
         .then(response => response.json())
         .then(items => {
             items.forEach(item => {
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const role = document.getElementById('user-role').value;
-        fetch(`${apiUrl}/users/`, {
+        fetchWithAuth('/users/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, role })
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const number = document.getElementById('table-number').value;
         const seats = document.getElementById('table-seats').value;
-        fetch(`${apiUrl}/tables/`, {
+        fetchWithAuth('/tables/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ number, seats })
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('category-form').addEventListener('submit', event => {
         event.preventDefault();
         const name = document.getElementById('category-name').value;
-        fetch(`${apiUrl}/categories/`, {
+        fetchWithAuth('/categories/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name })
@@ -95,10 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const description = document.getElementById('item-description').value;
         const price = document.getElementById('item-price').value;
         const category_id = document.getElementById('item-category').value;
-        fetch(`${apiUrl}/menu-items/`, {
+        fetchWithAuth('/menu-items/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, description, price, category_id })
         }).then(() => location.reload());
     });
+
+    // Fetch and display sales report
+    const salesReport = document.getElementById('sales-report');
+    fetchWithAuth('/analytics/sales/')
+        .then(response => response.json())
+        .then(data => {
+            salesReport.innerHTML = `
+                <p>Total Sales: ${data.total_sales.toFixed(2)}€</p>
+                <p>Total Bills: ${data.total_bills}</p>
+            `;
+        });
 });

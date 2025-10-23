@@ -14,6 +14,7 @@ def seed_db():
     # Create users
     create_user(db, UserCreate(username="admin", password="admin", role=UserRole.ADMIN))
     create_user(db, UserCreate(username="waiter", password="waiter", role=UserRole.WAITER))
+    create_user(db, UserCreate(username="kitchen", password="kitchen", role=UserRole.KITCHEN))
 
     # Create tables
     for i in range(1, 11):

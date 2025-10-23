@@ -18,8 +18,36 @@ class MenuItem(MenuItemBase):
     class Config:
         orm_mode = True
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+class BillBase(BaseModel):
+    total: float
+
+class BillCreate(BillBase):
+    order_ids: List[int]
+
+from .models import PaymentMethod
+
+class Bill(BillBase):
+    id: int
+    is_paid: int
+    payment_method: Optional[PaymentMethod] = None
+    orders: List[Order] = []
+
+    class Config:
+        orm_mode = True
+
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+class BillStatusUpdate(BaseModel):
+    is_paid: int
+    payment_method: PaymentMethod
 
 class CategoryBase(BaseModel):
     name: str
@@ -73,6 +101,7 @@ class Order(OrderBase):
     created_at: datetime
     status: OrderStatus
     items: List[OrderItem] = []
+    bill_id: Optional[int] = None
 
     class Config:
         orm_mode = True
