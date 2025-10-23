@@ -1,0 +1,57 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+.section {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#tables {
+    width: 200px;
+}
+
+#table-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.table {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.table.selected {
+    background-color: #007bff;
+    color: white;
+}
+
+#menu {
+    flex-grow: 1;
+}
+
+#category-buttons button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.menu-item {
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#order {
+    width: 300px;
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head><body>
+    <h1>Admin Panel</h1>
+    <div class="container">
+        <!-- User Management -->
+        <div class="section">
+            <h2>User Management</h2>
+            <form id="user-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <select id="user-role">
+                    <option value="admin">Admin</option>
+                    <option value="waiter">Waiter</option>
+                </select>
+                <button type="submit">Add User</button>
+            </form>
+            <ul id="user-list"></ul>
+        </div>
+
+        <!-- Table Management -->
+        <div class="section">
+            <h2>Table Management</h2>
+            <form id="table-form">
+                <input type="number" id="table-number" placeholder="Table Number" required>
+                <input type="number" id="table-seats" placeholder="Seats" required>
+                <button type="submit">Add Table</button>
+            </form>
+            <ul id="table-list"></ul>
+        </div>
+
+        <!-- Category Management -->
+        <div class="section">
+            <h2>Category Management</h2>
+            <form id="category-form">
+                <input type="text" id="category-name" placeholder="Category Name" required>
+                <button type="submit">Add Category</button>
+            </form>
+            <ul id="category-list"></ul>
+        </div>
+
+        <!-- Menu Item Management -->
+        <div class="section">
+            <h2>Menu Item Management</h2>
+            <form id="menu-item-form">
+                <input type="text" id="item-name" placeholder="Item Name" required>
+                <input type="text" id="item-description" placeholder="Description">
+                <input type="number" id="item-price" placeholder="Price" step="0.01" required>
+                <select id="item-category" required></select>
+                <button type="submit">Add Menu Item</button>
+            </form>
+            <ul id="menu-item-list"></ul>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
